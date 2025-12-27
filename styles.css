@@ -738,9 +738,8 @@ footer.loaded {
     .swipe-indicator {
         display: block;
         position: absolute;
-        bottom: 20%;
-        left: 50%;
-        transform: translateX(-50%);
+        bottom: 10%;
+        right: 5%;
         z-index: 10;
         opacity: 0.5;
         pointer-events: none;
@@ -749,34 +748,34 @@ footer.loaded {
     .swipe-indicator i {
         font-size: 3rem;
         color: #FF6666;
-        animation: swipeUp 3s ease-in-out 3, arrowBounce 2s ease-in-out infinite 9s;
+        animation: swipeLeft 3s ease-in-out 3, arrowPulse 2s ease-in-out infinite 9s;
         transform-origin: center;
     }
 
-    /* Swipe up animation - mimics finger swiping up 3 times */
-    @keyframes swipeUp {
+    /* Swipe left animation - mimics finger swiping left 3 times */
+    @keyframes swipeLeft {
         0%, 100% {
-            transform: translateY(0) rotate(90deg);
+            transform: translateX(0);
             opacity: 0.5;
         }
         25% {
-            transform: translateY(-30px) rotate(90deg);
+            transform: translateX(-30px);
             opacity: 0.3;
         }
         50% {
-            transform: translateY(0) rotate(90deg);
+            transform: translateX(0);
             opacity: 0.5;
         }
     }
 
-    /* After swipes, rotate to point down and bounce */
-    @keyframes arrowBounce {
+    /* After swipes, continue pulsing to indicate more content */
+    @keyframes arrowPulse {
         0%, 100% {
-            transform: translateY(0) rotate(270deg);
+            transform: scale(1);
             opacity: 0.5;
         }
         50% {
-            transform: translateY(10px) rotate(270deg);
+            transform: scale(1.1);
             opacity: 0.3;
         }
     }

@@ -280,21 +280,29 @@ class WindsorLakeApp {
 
         document.addEventListener('wheel', this.homeWheelHandler, { passive: false });
 
-        // Touch support for mobile ONLY
+        // Touch support for mobile ONLY - horizontal swipe navigation
         if (isMobile) {
+            let touchStartX = 0;
             let touchStartY = 0;
+
             const handleTouchStart = (e) => {
+                touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             };
 
             const handleTouchEnd = (e) => {
                 if (this.isNavigating) return;
+                const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
-                const deltaY = touchStartY - touchEndY;
+                const deltaX = touchStartX - touchEndX;
+                const deltaY = Math.abs(touchStartY - touchEndY);
 
-                // Swipe up (scroll down gesture) - threshold of 50px
-                if (deltaY > 50) {
-                    this.navigateTo('about');
+                // Only trigger if horizontal swipe is dominant (not vertical)
+                if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
+                    // Swipe left (right to left) - go forward to About
+                    if (deltaX > 0) {
+                        this.navigateTo('about');
+                    }
                 }
             };
 
@@ -396,6 +404,57 @@ class WindsorLakeApp {
 
         document.addEventListener('wheel', this.aboutWheelHandler, { passive: false });
 
+        // Touch support for mobile ONLY - horizontal swipe navigation
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            const handleTouchStart = (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            };
+
+            const handleTouchEnd = (e) => {
+                if (this.isNavigating || isScrolling) return;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaX = touchStartX - touchEndX;
+                const deltaY = Math.abs(touchStartY - touchEndY);
+
+                // Only trigger if horizontal swipe is dominant
+                if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
+                    isScrolling = true;
+
+                    // Swipe left (right to left) - go forward
+                    if (deltaX > 0) {
+                        if (currentSectionIndex < sections.length - 1) {
+                            // Next section
+                            showSection(currentSectionIndex + 1);
+                        } else {
+                            // Last section, go to Contact
+                            this.navigateTo('contact');
+                        }
+                    }
+                    // Swipe right (left to right) - go backward
+                    else {
+                        if (currentSectionIndex > 0) {
+                            // Previous section
+                            showSection(currentSectionIndex - 1);
+                        } else {
+                            // First section, go to Home
+                            this.navigateTo('home');
+                        }
+                    }
+
+                    setTimeout(() => { isScrolling = false; }, 300);
+                }
+            };
+
+            document.addEventListener('touchstart', handleTouchStart, { passive: true });
+            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
+
         // Set initial active dot (unless we're starting at last section)
         if (!startAtLastSection) {
             navDots[0]?.classList.add('active');
@@ -449,37 +508,34 @@ class WindsorLakeApp {
 
         document.addEventListener('wheel', this.contactWheelHandler, { passive: false });
 
-        // Touch support for mobile ONLY
+        // Touch support for mobile ONLY - horizontal swipe navigation
         const isMobile = window.innerWidth <= 768;
         if (isMobile) {
+            let touchStartX = 0;
             let touchStartY = 0;
+
             const handleTouchStart = (e) => {
+                touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             };
 
             const handleTouchEnd = (e) => {
                 if (this.isNavigating) return;
-                const contactPage = document.querySelector('.contact-page');
-                if (!contactPage) return;
-
+                const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
-                const deltaY = touchStartY - touchEndY;
+                const deltaX = touchStartX - touchEndX;
+                const deltaY = Math.abs(touchStartY - touchEndY);
 
-                const scrollTop = contactPage.scrollTop;
-                const scrollHeight = contactPage.scrollHeight;
-                const clientHeight = contactPage.clientHeight;
-
-                // Check if we're at the bottom or top of the contact page
-                const isAtTop = scrollTop <= 1;
-                const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 1;
-
-                // Swipe up (scroll down gesture) from bottom - go to Menu
-                if (deltaY > 50 && isAtBottom) {
-                    this.navigateTo('menu');
-                }
-                // Swipe down (scroll up gesture) from top - go to About (last section)
-                else if (deltaY < -50 && isAtTop) {
-                    this.navigateTo('about', { startAtLastSection: true });
+                // Only trigger if horizontal swipe is dominant
+                if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
+                    // Swipe left (right to left) - go forward to Menu
+                    if (deltaX > 0) {
+                        this.navigateTo('menu');
+                    }
+                    // Swipe right (left to right) - go backward to About (last section)
+                    else {
+                        this.navigateTo('about', { startAtLastSection: true });
+                    }
                 }
             };
 
@@ -508,26 +564,34 @@ class WindsorLakeApp {
 
         document.addEventListener('wheel', this.menuWheelHandler, { passive: false });
 
-        // Touch support for mobile ONLY
+        // Touch support for mobile ONLY - horizontal swipe navigation
         const isMobile = window.innerWidth <= 768;
         if (isMobile) {
+            let touchStartX = 0;
             let touchStartY = 0;
+
             const handleTouchStart = (e) => {
+                touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             };
 
             const handleTouchEnd = (e) => {
                 if (this.isNavigating) return;
+                const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
-                const deltaY = touchStartY - touchEndY;
+                const deltaX = touchStartX - touchEndX;
+                const deltaY = Math.abs(touchStartY - touchEndY);
 
-                // Swipe up (scroll down gesture) - go to Order Online
-                if (deltaY > 50) {
-                    this.navigateTo('order');
-                }
-                // Swipe down (scroll up gesture) - go to Contact
-                else if (deltaY < -50) {
-                    this.navigateTo('contact');
+                // Only trigger if horizontal swipe is dominant
+                if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
+                    // Swipe left (right to left) - go forward to Order Online
+                    if (deltaX > 0) {
+                        this.navigateTo('order');
+                    }
+                    // Swipe right (left to right) - go backward to Contact
+                    else {
+                        this.navigateTo('contact');
+                    }
                 }
             };
 
