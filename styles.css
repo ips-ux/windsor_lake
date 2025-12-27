@@ -855,10 +855,10 @@ footer.loaded {
     .swipe-indicator {
         display: block;
         position: absolute;
-        bottom: 10%;
+        bottom: 3%;
         right: 5%;
         z-index: 10;
-        opacity: 0.5;
+        opacity: 0.9;
         pointer-events: none;
     }
 
@@ -867,21 +867,22 @@ footer.loaded {
         color: #FF6666;
         animation: swipeLeft 3s ease-in-out 3, arrowPulse 2s ease-in-out infinite 9s;
         transform-origin: center;
+        filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
     }
 
     /* Swipe left animation - mimics finger swiping left 3 times */
     @keyframes swipeLeft {
         0%, 100% {
             transform: translateX(0);
-            opacity: 0.5;
+            opacity: 0.9;
         }
         25% {
             transform: translateX(-30px);
-            opacity: 0.3;
+            opacity: 0.7;
         }
         50% {
             transform: translateX(0);
-            opacity: 0.5;
+            opacity: 0.9;
         }
     }
 
@@ -889,11 +890,11 @@ footer.loaded {
     @keyframes arrowPulse {
         0%, 100% {
             transform: scale(1);
-            opacity: 0.5;
+            opacity: 0.9;
         }
         50% {
             transform: scale(1.1);
-            opacity: 0.3;
+            opacity: 0.7;
         }
     }
 
