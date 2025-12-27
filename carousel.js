@@ -76,31 +76,67 @@ class HeroCarousel {
     }
 
     buildCarousel() {
-        // Triple the images for seamless infinite loop
-        const allImages = [...this.images, ...this.images, ...this.images];
+        // Clear existing carousel
+        this.carouselTrack.innerHTML = '';
+        this.carouselTrack.style.animation = 'none';
+
+        // Create enough copies to ensure seamless looping
+        // We need at least 2 full sets for the seamless reset technique
+        const imagesToRender = [...this.images, ...this.images];
 
         // Create img elements
-        allImages.forEach(src => {
+        imagesToRender.forEach(src => {
             const img = document.createElement('img');
             img.src = src;
             img.alt = 'Carousel image';
             this.carouselTrack.appendChild(img);
         });
 
-        console.log('Carousel built with', allImages.length, 'images');
+        console.log('Carousel built with', imagesToRender.length, 'images (', this.images.length, 'unique)');
 
-        // Calculate total width and start animation
+        // Start the infinite scroll animation
         setTimeout(() => {
-            const trackWidth = this.carouselTrack.scrollWidth;
-            const containerWidth = document.querySelector('.hero-container').offsetWidth;
-
-            // Calculate animation duration based on width (slower scroll)
-            const duration = 60; // 24 seconds per screen width
-
-            this.carouselTrack.style.animation = `scroll-carousel ${duration}s linear infinite`;
-
-            console.log('Animation started:', duration + 's duration');
+            this.startInfiniteScroll();
         }, 100);
+    }
+
+    startInfiniteScroll() {
+        // Calculate dimensions
+        const images = this.carouselTrack.querySelectorAll('img');
+        if (images.length === 0) return;
+
+        // Wait for images to load to get accurate dimensions
+        const firstImage = images[0];
+        if (!firstImage.complete) {
+            firstImage.addEventListener('load', () => this.startInfiniteScroll());
+            return;
+        }
+
+        // Calculate the width of one complete set of images
+        let singleSetWidth = 0;
+        for (let i = 0; i < this.images.length; i++) {
+            const img = images[i];
+            const computedStyle = window.getComputedStyle(img);
+            const imgWidth = img.offsetWidth;
+            const marginRight = parseFloat(computedStyle.marginRight) || 0;
+            singleSetWidth += imgWidth + marginRight;
+        }
+
+        // Add the gap between images (from carousel-track)
+        const trackStyle = window.getComputedStyle(this.carouselTrack);
+        const gap = parseFloat(trackStyle.gap) || 30;
+        singleSetWidth += gap * (this.images.length - 1);
+
+        console.log('Single set width:', singleSetWidth + 'px');
+
+        // Set animation speed (pixels per second)
+        const pixelsPerSecond = 50; // Adjust this to change scroll speed
+        const duration = singleSetWidth / pixelsPerSecond;
+
+        // Apply the animation
+        this.carouselTrack.style.animation = `scroll-carousel ${duration}s linear infinite`;
+
+        console.log('Animation started:', duration.toFixed(2) + 's duration for one loop');
     }
 }
 

@@ -679,6 +679,10 @@ footer.loaded {
         animation: slideInFromRight 0.5s ease forwards;
     }
 
+    body.slide-from-right .swipe-indicator {
+        animation: slideInFromRight 0.5s ease forwards;
+    }
+
     /* Slide in from left (when swiping right) */
     body.slide-from-left .content-area {
         animation: slideInFromLeft 0.5s ease forwards;
@@ -689,6 +693,10 @@ footer.loaded {
     }
 
     body.slide-from-left footer {
+        animation: slideInFromLeft 0.5s ease forwards;
+    }
+
+    body.slide-from-left .swipe-indicator {
         animation: slideInFromLeft 0.5s ease forwards;
     }
 
@@ -705,6 +713,10 @@ footer.loaded {
         animation: slideOutToLeft 0.4s ease forwards;
     }
 
+    body.slide-out-left .swipe-indicator {
+        animation: slideOutToLeft 0.4s ease forwards;
+    }
+
     /* Slide out to right (when swiping right) */
     body.slide-out-right .content-area {
         animation: slideOutToRight 0.4s ease forwards;
@@ -715,6 +727,10 @@ footer.loaded {
     }
 
     body.slide-out-right footer {
+        animation: slideOutToRight 0.4s ease forwards;
+    }
+
+    body.slide-out-right .swipe-indicator {
         animation: slideOutToRight 0.4s ease forwards;
     }
 
@@ -854,9 +870,9 @@ footer.loaded {
     /* Swipe Indicator - Show on mobile only */
     .swipe-indicator {
         display: block;
-        position: absolute;
-        bottom: 3%;
-        right: 5%;
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
         z-index: 10;
         opacity: 0.9;
         pointer-events: none;
@@ -867,7 +883,7 @@ footer.loaded {
         color: #FF6666;
         animation: swipeLeft 3s ease-in-out 3, arrowPulse 2s ease-in-out infinite 9s;
         transform-origin: center;
-        filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+        transition: opacity 0.3s ease-in-out;
     }
 
     /* Swipe left animation - mimics finger swiping left 3 times */

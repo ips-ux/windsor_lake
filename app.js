@@ -18,6 +18,7 @@ class WindsorLakeApp {
         this.menuTouchEndHandler = null;
         this.isNavigating = false; // Global navigation lock
         this.swipeDirection = null; // Track swipe direction for animations
+        this.hasShownInitialGesture = false; // Track if initial gesture animation has been shown
         this.init();
     }
 
@@ -66,6 +67,28 @@ class WindsorLakeApp {
             this.contentArea.classList.add('loaded');
             if (footer) footer.classList.add('loaded');
         }, 100);
+
+        // Change swipe indicator icon after swipe animation completes (mobile only)
+        // This only runs on initial page load
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            setTimeout(() => {
+                const swipeIndicator = document.querySelector('.swipe-indicator i');
+                if (swipeIndicator) {
+                    // Fade out
+                    swipeIndicator.style.opacity = '0';
+
+                    // Change icon after fade out completes
+                    setTimeout(() => {
+                        swipeIndicator.className = 'fa-solid fa-arrow-right-arrow-left';
+                        // Fade back in
+                        swipeIndicator.style.opacity = '0.9';
+                        // Mark that we've shown the initial gesture
+                        this.hasShownInitialGesture = true;
+                    }, 300); // Match the CSS transition duration
+                }
+            }, 9000); // 3 swipes × 3 seconds = 9 seconds
+        }
 
         console.log('Windsor Lake App initialized');
     }
@@ -179,6 +202,28 @@ class WindsorLakeApp {
         const isLeavingHome = this.currentPage === 'home' && page !== 'home';
         const isGoingHome = page === 'home';
 
+        // If leaving home on mobile and haven't shown gesture yet, fast-forward to arrows
+        if (isLeavingHome && isMobile && !this.hasShownInitialGesture) {
+            const swipeIndicator = document.querySelector('.swipe-indicator i');
+            if (swipeIndicator) {
+                swipeIndicator.className = 'fa-solid fa-arrow-right-arrow-left';
+                swipeIndicator.style.opacity = '0.9';
+                swipeIndicator.style.animation = 'arrowPulse 2s ease-in-out infinite';
+                this.hasShownInitialGesture = true;
+            }
+        }
+
+        // Hide swipe indicator in the middle of slide-out animation when leaving home page
+        if (isLeavingHome && isMobile) {
+            const swipeIndicatorEl = document.querySelector('.swipe-indicator');
+            if (swipeIndicatorEl) {
+                // Hide after 200ms (middle of 400ms slide-out animation)
+                setTimeout(() => {
+                    swipeIndicatorEl.style.display = 'none';
+                }, 200);
+            }
+        }
+
         // Determine slide direction for mobile
         const pageOrder = ['home', 'about', 'contact', 'menu', 'order'];
         const currentIndex = pageOrder.indexOf(this.currentPage);
@@ -255,6 +300,26 @@ class WindsorLakeApp {
                 body.classList.add('page-mode');
                 header.classList.add('compact');
                 header.classList.remove('transitioning-out');
+            }
+        }
+
+        // Show/hide swipe indicator based on current page BEFORE animations (mobile only)
+        const swipeIndicator = document.querySelector('.swipe-indicator');
+        if (swipeIndicator) {
+            if (page === 'home') {
+                swipeIndicator.style.display = 'block';
+                // If we've already shown the initial gesture, show arrows immediately
+                if (this.hasShownInitialGesture) {
+                    const icon = swipeIndicator.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fa-solid fa-arrow-right-arrow-left';
+                        icon.style.opacity = '0.9';
+                        // Remove the swipe animation, keep only the pulse
+                        icon.style.animation = 'arrowPulse 2s ease-in-out infinite';
+                    }
+                }
+            } else {
+                swipeIndicator.style.display = 'none';
             }
         }
 
@@ -719,9 +784,6 @@ class WindsorLakeApp {
                     <span class="market">MARKET</span>
                     <span class="cafe">& CAFE</span>
                 </h1>
-                <div class="swipe-indicator">
-                    <i class="fa-solid fa-hand-pointer"></i>
-                </div>
             </div>
         `;
     }
