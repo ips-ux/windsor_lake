@@ -7,6 +7,15 @@ class WindsorLakeApp {
         this.homeWheelHandler = null;
         this.contactWheelHandler = null;
         this.menuWheelHandler = null;
+        // Touch handlers for mobile
+        this.homeTouchStartHandler = null;
+        this.homeTouchEndHandler = null;
+        this.aboutTouchStartHandler = null;
+        this.aboutTouchEndHandler = null;
+        this.contactTouchStartHandler = null;
+        this.contactTouchEndHandler = null;
+        this.menuTouchStartHandler = null;
+        this.menuTouchEndHandler = null;
         this.isNavigating = false; // Global navigation lock
         this.swipeDirection = null; // Track swipe direction for animations
         this.init();
@@ -99,28 +108,68 @@ class WindsorLakeApp {
         this.isNavigating = true;
         console.log('Navigating to:', page);
 
-        // Clean up about page wheel listener if leaving about page
-        if (this.currentPage === 'about' && this.aboutWheelHandler) {
-            document.removeEventListener('wheel', this.aboutWheelHandler);
-            this.aboutWheelHandler = null;
+        // Clean up about page listeners if leaving about page
+        if (this.currentPage === 'about') {
+            if (this.aboutWheelHandler) {
+                document.removeEventListener('wheel', this.aboutWheelHandler);
+                this.aboutWheelHandler = null;
+            }
+            if (this.aboutTouchStartHandler) {
+                document.removeEventListener('touchstart', this.aboutTouchStartHandler);
+                this.aboutTouchStartHandler = null;
+            }
+            if (this.aboutTouchEndHandler) {
+                document.removeEventListener('touchend', this.aboutTouchEndHandler);
+                this.aboutTouchEndHandler = null;
+            }
         }
 
-        // Clean up home page wheel listener if leaving home page
-        if (this.currentPage === 'home' && this.homeWheelHandler) {
-            document.removeEventListener('wheel', this.homeWheelHandler);
-            this.homeWheelHandler = null;
+        // Clean up home page listeners if leaving home page
+        if (this.currentPage === 'home') {
+            if (this.homeWheelHandler) {
+                document.removeEventListener('wheel', this.homeWheelHandler);
+                this.homeWheelHandler = null;
+            }
+            if (this.homeTouchStartHandler) {
+                document.removeEventListener('touchstart', this.homeTouchStartHandler);
+                this.homeTouchStartHandler = null;
+            }
+            if (this.homeTouchEndHandler) {
+                document.removeEventListener('touchend', this.homeTouchEndHandler);
+                this.homeTouchEndHandler = null;
+            }
         }
 
-        // Clean up contact page wheel listener if leaving contact page
-        if (this.currentPage === 'contact' && this.contactWheelHandler) {
-            document.removeEventListener('wheel', this.contactWheelHandler);
-            this.contactWheelHandler = null;
+        // Clean up contact page listeners if leaving contact page
+        if (this.currentPage === 'contact') {
+            if (this.contactWheelHandler) {
+                document.removeEventListener('wheel', this.contactWheelHandler);
+                this.contactWheelHandler = null;
+            }
+            if (this.contactTouchStartHandler) {
+                document.removeEventListener('touchstart', this.contactTouchStartHandler);
+                this.contactTouchStartHandler = null;
+            }
+            if (this.contactTouchEndHandler) {
+                document.removeEventListener('touchend', this.contactTouchEndHandler);
+                this.contactTouchEndHandler = null;
+            }
         }
 
-        // Clean up menu page wheel listener if leaving menu page
-        if (this.currentPage === 'menu' && this.menuWheelHandler) {
-            document.removeEventListener('wheel', this.menuWheelHandler);
-            this.menuWheelHandler = null;
+        // Clean up menu page listeners if leaving menu page
+        if (this.currentPage === 'menu') {
+            if (this.menuWheelHandler) {
+                document.removeEventListener('wheel', this.menuWheelHandler);
+                this.menuWheelHandler = null;
+            }
+            if (this.menuTouchStartHandler) {
+                document.removeEventListener('touchstart', this.menuTouchStartHandler);
+                this.menuTouchStartHandler = null;
+            }
+            if (this.menuTouchEndHandler) {
+                document.removeEventListener('touchend', this.menuTouchEndHandler);
+                this.menuTouchEndHandler = null;
+            }
         }
 
         const header = document.querySelector('header');
@@ -325,12 +374,12 @@ class WindsorLakeApp {
             let touchStartX = 0;
             let touchStartY = 0;
 
-            const handleTouchStart = (e) => {
+            this.homeTouchStartHandler = (e) => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             };
 
-            const handleTouchEnd = (e) => {
+            this.homeTouchEndHandler = (e) => {
                 if (this.isNavigating) return;
                 const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
@@ -348,8 +397,8 @@ class WindsorLakeApp {
                 }
             };
 
-            document.addEventListener('touchstart', handleTouchStart, { passive: true });
-            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+            document.addEventListener('touchstart', this.homeTouchStartHandler, { passive: true });
+            document.addEventListener('touchend', this.homeTouchEndHandler, { passive: true });
         }
     }
 
@@ -452,12 +501,12 @@ class WindsorLakeApp {
             let touchStartX = 0;
             let touchStartY = 0;
 
-            const handleTouchStart = (e) => {
+            this.aboutTouchStartHandler = (e) => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             };
 
-            const handleTouchEnd = (e) => {
+            this.aboutTouchEndHandler = (e) => {
                 if (this.isNavigating || isScrolling) return;
                 const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
@@ -495,8 +544,8 @@ class WindsorLakeApp {
                 }
             };
 
-            document.addEventListener('touchstart', handleTouchStart, { passive: true });
-            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+            document.addEventListener('touchstart', this.aboutTouchStartHandler, { passive: true });
+            document.addEventListener('touchend', this.aboutTouchEndHandler, { passive: true });
         }
 
         // Set initial active dot (unless we're starting at last section)
@@ -561,12 +610,12 @@ class WindsorLakeApp {
             let touchStartX = 0;
             let touchStartY = 0;
 
-            const handleTouchStart = (e) => {
+            this.contactTouchStartHandler = (e) => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             };
 
-            const handleTouchEnd = (e) => {
+            this.contactTouchEndHandler = (e) => {
                 if (this.isNavigating) return;
                 const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
@@ -588,8 +637,8 @@ class WindsorLakeApp {
                 }
             };
 
-            document.addEventListener('touchstart', handleTouchStart, { passive: true });
-            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+            document.addEventListener('touchstart', this.contactTouchStartHandler, { passive: true });
+            document.addEventListener('touchend', this.contactTouchEndHandler, { passive: true });
         }
     }
 
@@ -619,12 +668,12 @@ class WindsorLakeApp {
             let touchStartX = 0;
             let touchStartY = 0;
 
-            const handleTouchStart = (e) => {
+            this.menuTouchStartHandler = (e) => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             };
 
-            const handleTouchEnd = (e) => {
+            this.menuTouchEndHandler = (e) => {
                 if (this.isNavigating) return;
                 const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
@@ -646,8 +695,8 @@ class WindsorLakeApp {
                 }
             };
 
-            document.addEventListener('touchstart', handleTouchStart, { passive: true });
-            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+            document.addEventListener('touchstart', this.menuTouchStartHandler, { passive: true });
+            document.addEventListener('touchend', this.menuTouchEndHandler, { passive: true });
         }
     }
 
