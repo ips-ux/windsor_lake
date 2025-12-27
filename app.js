@@ -6,6 +6,8 @@ class WindsorLakeApp {
         this.aboutWheelHandler = null;
         this.homeWheelHandler = null;
         this.contactWheelHandler = null;
+        this.menuWheelHandler = null;
+        this.isNavigating = false; // Global navigation lock
         this.init();
     }
 
@@ -91,8 +93,9 @@ class WindsorLakeApp {
     }
 
     async navigateTo(page, options = {}) {
-        if (this.currentPage === page) return;
+        if (this.currentPage === page || this.isNavigating) return;
 
+        this.isNavigating = true;
         console.log('Navigating to:', page);
 
         // Clean up about page wheel listener if leaving about page
@@ -111,6 +114,12 @@ class WindsorLakeApp {
         if (this.currentPage === 'contact' && this.contactWheelHandler) {
             document.removeEventListener('wheel', this.contactWheelHandler);
             this.contactWheelHandler = null;
+        }
+
+        // Clean up menu page wheel listener if leaving menu page
+        if (this.currentPage === 'menu' && this.menuWheelHandler) {
+            document.removeEventListener('wheel', this.menuWheelHandler);
+            this.menuWheelHandler = null;
         }
 
         const header = document.querySelector('header');
@@ -152,6 +161,13 @@ class WindsorLakeApp {
         // Load new page content
         this.loadPage(page, options);
 
+        // Add/remove about page class for mobile footer hiding
+        if (page === 'about') {
+            body.classList.add('on-about-page');
+        } else {
+            body.classList.remove('on-about-page');
+        }
+
         // Update layout mode (desktop only)
         if (isDesktop) {
             if (isGoingHome) {
@@ -177,6 +193,11 @@ class WindsorLakeApp {
         await this.fadeIn(isLeavingHome && isDesktop);
 
         this.currentPage = page;
+
+        // Release navigation lock after animations complete
+        setTimeout(() => {
+            this.isNavigating = false;
+        }, 400);
     }
 
     fadeOut() {
@@ -218,6 +239,7 @@ class WindsorLakeApp {
                 break;
             case 'menu':
                 this.contentArea.innerHTML = this.getMenuPage();
+                this.initializeMenuScroll();
                 break;
             case 'about':
                 this.contentArea.innerHTML = this.getAboutPage();
@@ -242,44 +264,43 @@ class WindsorLakeApp {
     }
 
     initializeHomeScroll() {
-        let isScrolling = false;
+        const isMobile = window.innerWidth <= 768;
+
         this.homeWheelHandler = (e) => {
-            if (isScrolling) return;
+            if (this.isNavigating) return;
 
             const delta = e.deltaY;
 
             // Only trigger on scroll down
             if (delta > 0) {
                 e.preventDefault();
-                isScrolling = true;
                 this.navigateTo('about');
-                setTimeout(() => { isScrolling = false; }, 600);
             }
         };
 
         document.addEventListener('wheel', this.homeWheelHandler, { passive: false });
 
-        // Touch support for mobile swipe down
-        let touchStartY = 0;
-        const handleTouchStart = (e) => {
-            touchStartY = e.touches[0].clientY;
-        };
+        // Touch support for mobile ONLY
+        if (isMobile) {
+            let touchStartY = 0;
+            const handleTouchStart = (e) => {
+                touchStartY = e.touches[0].clientY;
+            };
 
-        const handleTouchEnd = (e) => {
-            if (isScrolling) return;
-            const touchEndY = e.changedTouches[0].clientY;
-            const deltaY = touchStartY - touchEndY;
+            const handleTouchEnd = (e) => {
+                if (this.isNavigating) return;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaY = touchStartY - touchEndY;
 
-            // Swipe up (scroll down gesture) - threshold of 50px
-            if (deltaY > 50) {
-                isScrolling = true;
-                this.navigateTo('about');
-                setTimeout(() => { isScrolling = false; }, 600);
-            }
-        };
+                // Swipe up (scroll down gesture) - threshold of 50px
+                if (deltaY > 50) {
+                    this.navigateTo('about');
+                }
+            };
 
-        document.addEventListener('touchstart', handleTouchStart, { passive: true });
-        document.addEventListener('touchend', handleTouchEnd, { passive: true });
+            document.addEventListener('touchstart', handleTouchStart, { passive: true });
+            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
     }
 
     initializeAboutScroll(startAtLastSection = false) {
@@ -324,7 +345,7 @@ class WindsorLakeApp {
         // Handle mouse wheel scrolling
         let isScrolling = false;
         this.aboutWheelHandler = (e) => {
-            if (isScrolling) return;
+            if (isScrolling || this.isNavigating) return;
 
             const delta = e.deltaY;
             const activeSection = sections[currentSectionIndex];
@@ -344,18 +365,14 @@ class WindsorLakeApp {
             // Scroll up from first section - go to home
             if (delta < 0 && currentSectionIndex === 0 && isAtSectionTop) {
                 e.preventDefault();
-                isScrolling = true;
                 this.navigateTo('home');
-                setTimeout(() => { isScrolling = false; }, 600);
                 return;
             }
 
             // Scroll down from last section (section 3: "A hub for arts & community") - go to contact
             if (delta > 0 && currentSectionIndex === 3 && isAtSectionBottom) {
                 e.preventDefault();
-                isScrolling = true;
                 this.navigateTo('contact');
-                setTimeout(() => { isScrolling = false; }, 600);
                 return;
             }
 
@@ -367,13 +384,13 @@ class WindsorLakeApp {
                 e.preventDefault();
                 isScrolling = true;
                 showSection(currentSectionIndex + 1);
-                setTimeout(() => { isScrolling = false; }, 600);
+                setTimeout(() => { isScrolling = false; }, 300);
             } else if (delta < 0 && currentSectionIndex > 0 && isAtSectionTop) {
                 // Scroll up to previous section
                 e.preventDefault();
                 isScrolling = true;
                 showSection(currentSectionIndex - 1);
-                setTimeout(() => { isScrolling = false; }, 600);
+                setTimeout(() => { isScrolling = false; }, 300);
             }
         };
 
@@ -386,57 +403,137 @@ class WindsorLakeApp {
     }
 
     initializeContactScroll() {
-        let isScrolling = false;
+        let lastScrollTop = 0;
+
         this.contactWheelHandler = (e) => {
-            if (isScrolling) return;
+            if (this.isNavigating) return;
 
             const delta = e.deltaY;
+            const contactPage = document.querySelector('.contact-page');
+            if (!contactPage) return;
 
-            // Scroll up - go back to About (last section)
-            if (delta < 0) {
+            const scrollTop = contactPage.scrollTop;
+            const scrollHeight = contactPage.scrollHeight;
+            const clientHeight = contactPage.clientHeight;
+
+            // Calculate if we're at boundaries with a small threshold
+            const isAtTop = scrollTop <= 1;
+            const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 1;
+
+            // Track if user was already at boundary on previous scroll
+            const wasAtTop = lastScrollTop <= 1;
+            const wasAtBottom = Math.abs(scrollHeight - clientHeight - lastScrollTop) <= 1;
+
+            // Only trigger navigation if:
+            // 1. User is scrolling in direction of boundary
+            // 2. Already at that boundary
+            // 3. Was at boundary on previous scroll (prevents first scroll from triggering)
+
+            // Scroll up from top
+            if (delta < 0 && isAtTop && wasAtTop) {
                 e.preventDefault();
-                isScrolling = true;
                 this.navigateTo('about', { startAtLastSection: true });
-                setTimeout(() => { isScrolling = false; }, 600);
+                return;
             }
-            // Scroll down - progress to Menu
-            else if (delta > 0) {
+
+            // Scroll down from bottom
+            if (delta > 0 && isAtBottom && wasAtBottom) {
                 e.preventDefault();
-                isScrolling = true;
                 this.navigateTo('menu');
-                setTimeout(() => { isScrolling = false; }, 600);
+                return;
             }
+
+            // Update last scroll position
+            lastScrollTop = scrollTop;
         };
 
         document.addEventListener('wheel', this.contactWheelHandler, { passive: false });
 
-        // Touch support for mobile
-        let touchStartY = 0;
-        const handleTouchStart = (e) => {
-            touchStartY = e.touches[0].clientY;
+        // Touch support for mobile ONLY
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            let touchStartY = 0;
+            const handleTouchStart = (e) => {
+                touchStartY = e.touches[0].clientY;
+            };
+
+            const handleTouchEnd = (e) => {
+                if (this.isNavigating) return;
+                const contactPage = document.querySelector('.contact-page');
+                if (!contactPage) return;
+
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaY = touchStartY - touchEndY;
+
+                const scrollTop = contactPage.scrollTop;
+                const scrollHeight = contactPage.scrollHeight;
+                const clientHeight = contactPage.clientHeight;
+
+                // Check if we're at the bottom or top of the contact page
+                const isAtTop = scrollTop <= 1;
+                const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 1;
+
+                // Swipe up (scroll down gesture) from bottom - go to Menu
+                if (deltaY > 50 && isAtBottom) {
+                    this.navigateTo('menu');
+                }
+                // Swipe down (scroll up gesture) from top - go to About (last section)
+                else if (deltaY < -50 && isAtTop) {
+                    this.navigateTo('about', { startAtLastSection: true });
+                }
+            };
+
+            document.addEventListener('touchstart', handleTouchStart, { passive: true });
+            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
+    }
+
+    initializeMenuScroll() {
+        this.menuWheelHandler = (e) => {
+            if (this.isNavigating) return;
+
+            const delta = e.deltaY;
+
+            // Scroll up - go back to Contact
+            if (delta < 0) {
+                e.preventDefault();
+                this.navigateTo('contact');
+            }
+            // Scroll down - progress to Order Online
+            else if (delta > 0) {
+                e.preventDefault();
+                this.navigateTo('order');
+            }
         };
 
-        const handleTouchEnd = (e) => {
-            if (isScrolling) return;
-            const touchEndY = e.changedTouches[0].clientY;
-            const deltaY = touchStartY - touchEndY;
+        document.addEventListener('wheel', this.menuWheelHandler, { passive: false });
 
-            // Swipe up (scroll down gesture) - go to Menu
-            if (deltaY > 50) {
-                isScrolling = true;
-                this.navigateTo('menu');
-                setTimeout(() => { isScrolling = false; }, 600);
-            }
-            // Swipe down (scroll up gesture) - go to About (last section)
-            else if (deltaY < -50) {
-                isScrolling = true;
-                this.navigateTo('about', { startAtLastSection: true });
-                setTimeout(() => { isScrolling = false; }, 600);
-            }
-        };
+        // Touch support for mobile ONLY
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            let touchStartY = 0;
+            const handleTouchStart = (e) => {
+                touchStartY = e.touches[0].clientY;
+            };
 
-        document.addEventListener('touchstart', handleTouchStart, { passive: true });
-        document.addEventListener('touchend', handleTouchEnd, { passive: true });
+            const handleTouchEnd = (e) => {
+                if (this.isNavigating) return;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaY = touchStartY - touchEndY;
+
+                // Swipe up (scroll down gesture) - go to Order Online
+                if (deltaY > 50) {
+                    this.navigateTo('order');
+                }
+                // Swipe down (scroll up gesture) - go to Contact
+                else if (deltaY < -50) {
+                    this.navigateTo('contact');
+                }
+            };
+
+            document.addEventListener('touchstart', handleTouchStart, { passive: true });
+            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
     }
 
     reinitializeCarousel() {
@@ -458,6 +555,9 @@ class WindsorLakeApp {
                     <span class="market">MARKET</span>
                     <span class="cafe">& CAFE</span>
                 </h1>
+                <div class="swipe-indicator">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                </div>
             </div>
         `;
     }
@@ -493,7 +593,7 @@ class WindsorLakeApp {
                     </div>
                     <div class="about-content">
                         <h2>Locally Sourced, Lovingly Prepared</h2>
-                        <p>We believe that great food starts with great neighbors. That's why we source locally whenever possible, partnering with Colorado suppliers who share our dedication to quality.</p>
+                        <p>We believe that great food starts with great neighbors. That's why we source locally from suppliers dedicated to quality.</p>
                         <ul class="source-list">
                             <li><strong>Coffee:</strong> We proudly brew Coda Coffee, a Denver-based company known for their exceptional, ethically sourced beans.</li>
                             <li><strong>Dairy:</strong> Our milk and cream come fresh from Morning Fresh Dairy in Bellvue, ensuring your lattes and steamers are rich and delicious.</li>

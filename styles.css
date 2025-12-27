@@ -308,6 +308,11 @@ body.page-mode .menu-indicator {
     font-size: 0.85em;
 }
 
+/* Swipe Indicator - Hidden on desktop, shown on mobile */
+.swipe-indicator {
+    display: none;
+}
+
 /* Content Area Transitions */
 .content-area {
     opacity: 0;
@@ -710,7 +715,6 @@ footer.loaded {
 
     .hero-container {
         height: 600px;
-        max-height: 600px;
     }
 
     .hero-title {
@@ -728,6 +732,53 @@ footer.loaded {
 
     .carousel-track img {
         min-width: 0px;
+    }
+
+    /* Swipe Indicator - Show on mobile only */
+    .swipe-indicator {
+        display: block;
+        position: absolute;
+        bottom: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .swipe-indicator i {
+        font-size: 3rem;
+        color: #FF6666;
+        animation: swipeUp 3s ease-in-out 3, arrowBounce 2s ease-in-out infinite 9s;
+        transform-origin: center;
+    }
+
+    /* Swipe up animation - mimics finger swiping up 3 times */
+    @keyframes swipeUp {
+        0%, 100% {
+            transform: translateY(0) rotate(90deg);
+            opacity: 0.5;
+        }
+        25% {
+            transform: translateY(-30px) rotate(90deg);
+            opacity: 0.3;
+        }
+        50% {
+            transform: translateY(0) rotate(90deg);
+            opacity: 0.5;
+        }
+    }
+
+    /* After swipes, rotate to point down and bounce */
+    @keyframes arrowBounce {
+        0%, 100% {
+            transform: translateY(0) rotate(270deg);
+            opacity: 0.5;
+        }
+        50% {
+            transform: translateY(10px) rotate(270deg);
+            opacity: 0.3;
+        }
     }
 
     /* About Page Mobile Layout */
@@ -761,6 +812,11 @@ footer.loaded {
 
     .about-page {
         padding: 2rem 1.5rem;
+    }
+
+    /* Hide footer on About page for mobile */
+    body.on-about-page footer {
+        display: none;
     }
 
     .about-page h2 {
@@ -805,7 +861,7 @@ footer.loaded {
     }
 
     .hero-container {
-        height: 600px;
+        height: 469px;
         margin-top: 2rem;
     }
 
@@ -883,6 +939,8 @@ footer.loaded {
     max-width: 1400px;
     margin: 0 auto;
     padding: 3rem 2rem 0 2rem;
+    overflow-y: auto;
+    height: 100%;
 }
 
 .contact-title {
