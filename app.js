@@ -506,54 +506,57 @@ class WindsorLakeApp {
     }
 
     initializeContactScroll() {
+        const isMobile = window.innerWidth <= 768;
         let lastScrollTop = 0;
 
-        this.contactWheelHandler = (e) => {
-            if (this.isNavigating) return;
+        // Only add wheel handler on desktop
+        if (!isMobile) {
+            this.contactWheelHandler = (e) => {
+                if (this.isNavigating) return;
 
-            const delta = e.deltaY;
-            const contactPage = document.querySelector('.contact-page');
-            if (!contactPage) return;
+                const delta = e.deltaY;
+                const contactPage = document.querySelector('.contact-page');
+                if (!contactPage) return;
 
-            const scrollTop = contactPage.scrollTop;
-            const scrollHeight = contactPage.scrollHeight;
-            const clientHeight = contactPage.clientHeight;
+                const scrollTop = contactPage.scrollTop;
+                const scrollHeight = contactPage.scrollHeight;
+                const clientHeight = contactPage.clientHeight;
 
-            // Calculate if we're at boundaries with a small threshold
-            const isAtTop = scrollTop <= 1;
-            const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 1;
+                // Calculate if we're at boundaries with a small threshold
+                const isAtTop = scrollTop <= 1;
+                const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 1;
 
-            // Track if user was already at boundary on previous scroll
-            const wasAtTop = lastScrollTop <= 1;
-            const wasAtBottom = Math.abs(scrollHeight - clientHeight - lastScrollTop) <= 1;
+                // Track if user was already at boundary on previous scroll
+                const wasAtTop = lastScrollTop <= 1;
+                const wasAtBottom = Math.abs(scrollHeight - clientHeight - lastScrollTop) <= 1;
 
-            // Only trigger navigation if:
-            // 1. User is scrolling in direction of boundary
-            // 2. Already at that boundary
-            // 3. Was at boundary on previous scroll (prevents first scroll from triggering)
+                // Only trigger navigation if:
+                // 1. User is scrolling in direction of boundary
+                // 2. Already at that boundary
+                // 3. Was at boundary on previous scroll (prevents first scroll from triggering)
 
-            // Scroll up from top
-            if (delta < 0 && isAtTop && wasAtTop) {
-                e.preventDefault();
-                this.navigateTo('about', { startAtLastSection: true });
-                return;
-            }
+                // Scroll up from top
+                if (delta < 0 && isAtTop && wasAtTop) {
+                    e.preventDefault();
+                    this.navigateTo('about', { startAtLastSection: true });
+                    return;
+                }
 
-            // Scroll down from bottom
-            if (delta > 0 && isAtBottom && wasAtBottom) {
-                e.preventDefault();
-                this.navigateTo('menu');
-                return;
-            }
+                // Scroll down from bottom
+                if (delta > 0 && isAtBottom && wasAtBottom) {
+                    e.preventDefault();
+                    this.navigateTo('menu');
+                    return;
+                }
 
-            // Update last scroll position
-            lastScrollTop = scrollTop;
-        };
+                // Update last scroll position
+                lastScrollTop = scrollTop;
+            };
 
-        document.addEventListener('wheel', this.contactWheelHandler, { passive: false });
+            document.addEventListener('wheel', this.contactWheelHandler, { passive: false });
+        }
 
         // Touch support for mobile ONLY - horizontal swipe navigation
-        const isMobile = window.innerWidth <= 768;
         if (isMobile) {
             let touchStartX = 0;
             let touchStartY = 0;
