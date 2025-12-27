@@ -645,6 +645,113 @@ footer.loaded {
 
 @media (max-width: 768px) {
 
+    /* Mobile-specific horizontal slide animations */
+    .content-area {
+        transform: translateX(0);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .content-area.loaded {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* Slide in from right (when swiping left) */
+    body.slide-from-right .content-area {
+        animation: slideInFromRight 0.5s ease forwards;
+    }
+
+    body.slide-from-right header {
+        animation: slideInFromRight 0.5s ease forwards;
+    }
+
+    body.slide-from-right footer {
+        animation: slideInFromRight 0.5s ease forwards;
+    }
+
+    /* Slide in from left (when swiping right) */
+    body.slide-from-left .content-area {
+        animation: slideInFromLeft 0.5s ease forwards;
+    }
+
+    body.slide-from-left header {
+        animation: slideInFromLeft 0.5s ease forwards;
+    }
+
+    body.slide-from-left footer {
+        animation: slideInFromLeft 0.5s ease forwards;
+    }
+
+    /* Slide out to left (when swiping left) */
+    body.slide-out-left .content-area {
+        animation: slideOutToLeft 0.4s ease forwards;
+    }
+
+    body.slide-out-left header {
+        animation: slideOutToLeft 0.4s ease forwards;
+    }
+
+    body.slide-out-left footer {
+        animation: slideOutToLeft 0.4s ease forwards;
+    }
+
+    /* Slide out to right (when swiping right) */
+    body.slide-out-right .content-area {
+        animation: slideOutToRight 0.4s ease forwards;
+    }
+
+    body.slide-out-right header {
+        animation: slideOutToRight 0.4s ease forwards;
+    }
+
+    body.slide-out-right footer {
+        animation: slideOutToRight 0.4s ease forwards;
+    }
+
+    @keyframes slideInFromRight {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInFromLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideOutToLeft {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(-100px);
+        }
+    }
+
+    @keyframes slideOutToRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+    }
+
     .logo-mobile {
         height: 50px !important;
     }

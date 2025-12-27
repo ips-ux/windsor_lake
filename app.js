@@ -8,6 +8,7 @@ class WindsorLakeApp {
         this.contactWheelHandler = null;
         this.menuWheelHandler = null;
         this.isNavigating = false; // Global navigation lock
+        this.swipeDirection = null; // Track swipe direction for animations
         this.init();
     }
 
@@ -125,8 +126,25 @@ class WindsorLakeApp {
         const header = document.querySelector('header');
         const body = document.body;
         const isDesktop = window.innerWidth > 768;
+        const isMobile = window.innerWidth <= 768;
         const isLeavingHome = this.currentPage === 'home' && page !== 'home';
         const isGoingHome = page === 'home';
+
+        // Determine slide direction for mobile
+        const pageOrder = ['home', 'about', 'contact', 'menu', 'order'];
+        const currentIndex = pageOrder.indexOf(this.currentPage);
+        const nextIndex = pageOrder.indexOf(page);
+        const isMovingForward = nextIndex > currentIndex;
+
+        // On mobile, use swipeDirection if set (from touch), otherwise use page order
+        let slideDirection = null;
+        if (isMobile) {
+            if (this.swipeDirection) {
+                slideDirection = this.swipeDirection;
+            } else {
+                slideDirection = isMovingForward ? 'left' : 'right';
+            }
+        }
 
         // Fade out background logo when returning to home
         if (isDesktop && isGoingHome) {
@@ -140,6 +158,11 @@ class WindsorLakeApp {
         } else {
             // Immediate update for all other transitions
             this.updateMenuIndicator(page);
+        }
+
+        // Add slide-out class for mobile
+        if (isMobile && slideDirection) {
+            body.classList.add(`slide-out-${slideDirection}`);
         }
 
         // Fade out menu and current content
@@ -186,6 +209,14 @@ class WindsorLakeApp {
             }
         }
 
+        // Remove slide-out class and add slide-in class for mobile
+        if (isMobile && slideDirection) {
+            body.classList.remove(`slide-out-${slideDirection}`);
+            // Slide in from opposite direction
+            const slideInDirection = slideDirection === 'left' ? 'right' : 'left';
+            body.classList.add(`slide-from-${slideInDirection}`);
+        }
+
         // Wait for DOM to be ready before fading in
         await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -193,6 +224,15 @@ class WindsorLakeApp {
         await this.fadeIn(isLeavingHome && isDesktop);
 
         this.currentPage = page;
+
+        // Clean up slide classes and reset swipe direction
+        if (isMobile && slideDirection) {
+            const slideInDirection = slideDirection === 'left' ? 'right' : 'left';
+            setTimeout(() => {
+                body.classList.remove(`slide-from-${slideInDirection}`);
+                this.swipeDirection = null;
+            }, 500);
+        }
 
         // Release navigation lock after animations complete
         setTimeout(() => {
@@ -301,8 +341,10 @@ class WindsorLakeApp {
                 if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
                     // Swipe left (right to left) - go forward to About
                     if (deltaX > 0) {
+                        this.swipeDirection = 'left';
                         this.navigateTo('about');
                     }
+                    // Swipe right (left to right) - would go back but we're on home
                 }
             };
 
@@ -433,6 +475,7 @@ class WindsorLakeApp {
                             showSection(currentSectionIndex + 1);
                         } else {
                             // Last section, go to Contact
+                            this.swipeDirection = 'left';
                             this.navigateTo('contact');
                         }
                     }
@@ -443,6 +486,7 @@ class WindsorLakeApp {
                             showSection(currentSectionIndex - 1);
                         } else {
                             // First section, go to Home
+                            this.swipeDirection = 'right';
                             this.navigateTo('home');
                         }
                     }
@@ -530,10 +574,12 @@ class WindsorLakeApp {
                 if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
                     // Swipe left (right to left) - go forward to Menu
                     if (deltaX > 0) {
+                        this.swipeDirection = 'left';
                         this.navigateTo('menu');
                     }
                     // Swipe right (left to right) - go backward to About (last section)
                     else {
+                        this.swipeDirection = 'right';
                         this.navigateTo('about', { startAtLastSection: true });
                     }
                 }
@@ -586,10 +632,12 @@ class WindsorLakeApp {
                 if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
                     // Swipe left (right to left) - go forward to Order Online
                     if (deltaX > 0) {
+                        this.swipeDirection = 'left';
                         this.navigateTo('order');
                     }
                     // Swipe right (left to right) - go backward to Contact
                     else {
+                        this.swipeDirection = 'right';
                         this.navigateTo('contact');
                     }
                 }
